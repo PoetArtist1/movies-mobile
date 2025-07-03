@@ -13,6 +13,7 @@ export default function Login() {
       const { data } = await api.post('/auth/login', { username, password });
       global.token = data.token;
       global.user = data.user;
+      console.log("Sesión iniciada");
       router.replace('/');
     } catch (err) {
       Alert.alert('Error', err.response?.data?.msg || 'Problema al iniciar sesión');

@@ -1,28 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, TextInput, Button, Alert } from 'react-native';
-import { useRouter, useSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import api from '../../api';
 
 export default function MovieDetail() {
-  const { movieId } = useSearchParams();
+  const router = useRouter();
+  // Obtenemos el movieId directamente del query string
+  const { movieId } = router.query || {};
+  
   const [movie, setMovie] = useState(null);
   const [comments, setComments] = useState([]);
   const [myText, setMyText] = useState('');
   const [myScore, setMyScore] = useState('5');
 
   const load = async () => {
-    const { data: m } = await api.get(`/movies/${movieId}`);
-    setMovie(m);
-    const { data: c } = await api.get(`/comments/movie/${movieId}`);
-    setComments(c);
+    try {
+      if (!movieId) return;
+      
+      const { data: m } = await api.get(`/movies/${movieId}`);
+      setMovie(m);
+      console.log(movie);
+      const { data: c } = await api.get(`/comments/movie/${movieId}`);
+      setComments(c);
+    } catch (error) {
+      console.error('Error loading movie:', error);
+    }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    if (movieId) {
+      load();
+    }
+  }, [movieId]);
 
   const postComment = async () => {
     try {
-      await api.post('/comments', { movie_id: movieId, text: myText, score: parseInt(myScore) });
-      Alert.alert('OK', 'Comentario agregado', [{ text: 'OK', onPress: load }]);
+      await api.post('/comments', { 
+        movie_id: movieId, 
+        text: myText, 
+        score: parseInt(myScore) 
+      });
+      setMyText('');
+      setMyScore('5');
+      load(); // Recargar comentarios
     } catch {
       Alert.alert('Error', 'No se pudo agregar comentario');
     }
@@ -30,9 +50,18 @@ export default function MovieDetail() {
 
   if (!movie) return <Text>Cargando...</Text>;
 
+  // Asegurar que las imágenes carguen correctamente
+  const coverUrl = movie.cover?.startsWith('http') 
+    ? movie.cover 
+    : `https://image.tmdb.org/t/p/w500${movie.cover}`;
+
   return (
     <View style={{ flex: 1, padding: 10 }}>
-      <Image source={{ uri: movie.cover }} style={{ width: '100%', height: 200, marginBottom: 10 }} />
+      <Image 
+        source={{ uri: coverUrl }} 
+        style={{ width: '100%', height: 200, marginBottom: 10 }} 
+        resizeMode="contain"
+      />
       <Text style={{ fontSize: 24, marginBottom: 5 }}>{movie.title}</Text>
       <Text style={{ marginBottom: 5 }}>{movie.synopsis}</Text>
       <Text>Fecha: {movie.release_date}</Text>

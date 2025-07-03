@@ -3,11 +3,35 @@ import React from 'react';
 
 export default function Layout() {
   return (
-    <Stack screenOptions={{ headerShown: true }}>
-      <Stack.Screen name="auth/login" options={{ headerTitle: 'Iniciar Sesión' }} />
-      <Stack.Screen name="auth/register" options={{ headerTitle: 'Registrarse' }} />
-      <Stack.Screen name="index" options={{ headerTitle: 'Películas' }} />
-      <Stack.Screen name="movies/[movieId]" options={{ headerTitle: 'Detalle' }} />
+    <Stack>
+      <Stack.Screen 
+        name="auth/login" 
+        options={{ 
+          headerTitle: 'Iniciar Sesión',
+          headerShown: true
+        }} 
+      />
+      <Stack.Screen 
+        name="auth/register" 
+        options={{ 
+          headerTitle: 'Registrarse',
+          headerShown: true
+        }} 
+      />
+      <Stack.Screen 
+        name="index" 
+        options={{ 
+          headerTitle: 'Películas',
+          headerShown: true
+        }} 
+      />
+      <Stack.Screen 
+        name="movies/[movieId]" 
+        options={{ 
+          headerTitle: 'Detalle',
+          headerShown: true
+        }} 
+      />
     </Stack>
   );
 }

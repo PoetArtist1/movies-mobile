@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, TextInput, Button, FlatList, Text, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import api from '../api';
 
 export default function MovieList() {
@@ -8,43 +8,72 @@ export default function MovieList() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('tmdb_score');
   const router = useRouter();
+  const navigation = useNavigation();
 
-  const fetchMovies = async () => {
-  const { data } = await api.get('/movies', {
-    params: { search, sortBy, order: 'DESC' }
-  });
-
-  if (data.length === 0 && search.trim() !== '') {
+  const fetchMovies = useCallback(async () => {
     try {
-      // Llama a TMDb para intentar traerla por su nombre (primera coincidencia)
-      const tmdbSearch = await api.get(
-        `https://api.themoviedb.org/3/search/movie`,
-        {
-          params: {
-            api_key: '39138b8c198824b1f6de24334e4a3cc1',
-            query: search
+      const { data } = await api.get('/movies', {
+        params: { search, sortBy, order: 'DESC' }
+      });
+
+      if (data.length === 0 && search.trim() !== '') {
+        const tmdbSearch = await api.get(
+          `https://api.themoviedb.org/3/search/movie`,
+          {
+            params: {
+              api_key: '39138b8c198824b1f6de24334e4a3cc1',
+              query: search
+            }
           }
+        );
+
+        if (tmdbSearch.data.results.length > 0) {
+          const movie = tmdbSearch.data.results[0];
+          await api.post(`/movies/fetch/${movie.id}`);
+          fetchMovies();
+          return;
         }
-      );
-
-      if (tmdbSearch.data.results.length > 0) {
-        const movie = tmdbSearch.data.results[0];
-        // Llama al backend para guardar en tu base
-        await api.post(`/movies/fetch/${movie.id}`);
-        // Recarga la lista
-        fetchMovies();
-        return;
       }
+
+      setMovies(data);
     } catch (err) {
-      console.error('Error buscando en TMDb:', err.message);
+      console.error('Error fetching movies:', err.message);
     }
-  }
+  }, [search, sortBy]);
 
-  setMovies(data);
-};
+  // Búsqueda automática con debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search !== '') {
+        fetchMovies();
+      }
+    }, 500);
 
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  useEffect(() => { fetchMovies(); }, []);
+  // Recargar al enfocar la pantalla
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', fetchMovies);
+    return unsubscribe;
+  }, []);
+
+  // Botón de cerrar sesión
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Button 
+          onPress={() => {
+            global.token = null;
+            global.user = null;
+            router.replace('/auth/login');
+          }}
+          title="Cerrar sesión"
+          color="red"
+        />
+      )
+    });
+  }, [navigation]);
 
   return (
     <View style={{ flex: 1, padding: 10 }}>
@@ -58,7 +87,6 @@ export default function MovieList() {
         <Button title="Por Puntuación" onPress={() => setSortBy('tmdb_score')} />
         <Button title="Por Fecha" onPress={() => setSortBy('release_date')} />
       </View>
-      <Button title="Buscar" onPress={fetchMovies} />
       <FlatList
         data={movies}
         keyExtractor={item => item.id.toString()}
