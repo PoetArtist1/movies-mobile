@@ -11,6 +11,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import api from '../../api';
@@ -23,7 +24,7 @@ export default function MovieDetail() {
   const [error, setError] = useState(null);
 
   const [myText, setMyText] = useState('');
-  const [myScore, setMyScore] = useState('5');
+  const [myScore, setMyScore] = useState(0);  // ahora es número 0-10
   const [posting, setPosting] = useState(false);
 
   const loadData = async () => {
@@ -32,7 +33,6 @@ export default function MovieDetail() {
       setLoading(true);
       const { data: m } = await api.get(`/movies/${movieId}`);
       setMovie(m);
-      console.log(m);
       const { data: c } = await api.get(`/comments/movie/${movieId}`);
       setComments(c);
     } catch (err) {
@@ -52,15 +52,19 @@ export default function MovieDetail() {
       Alert.alert('Error', 'Escribe un comentario');
       return;
     }
+    if (myScore < 1 || myScore > 10) {
+      Alert.alert('Error', 'Selecciona un puntaje entre 1 y 10 estrellas');
+      return;
+    }
     setPosting(true);
     try {
       await api.post('/comments', {
         movie_id: movieId,
         text: myText,
-        score: parseInt(myScore, 10),
+        score: myScore,
       });
       setMyText('');
-      setMyScore('5');
+      setMyScore(0);
       const { data: c } = await api.get(`/comments/movie/${movieId}`);
       setComments(c);
     } catch {
@@ -69,6 +73,11 @@ export default function MovieDetail() {
       setPosting(false);
     }
   };
+
+  // calcula promedio
+  const userScoreAvg = comments.length
+    ? (comments.reduce((sum, cm) => sum + cm.score, 0) / comments.length).toFixed(1)
+    : '—';
 
   if (loading) {
     return (
@@ -103,10 +112,9 @@ export default function MovieDetail() {
       style={styles.container}
       behavior={Platform.select({ ios: 'padding', android: undefined })}
     >
-      {/* FlatList para header + comentarios */}
       <FlatList
         data={comments}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()}
         keyboardShouldPersistTaps="always"
         style={styles.list}
         contentContainerStyle={{ paddingHorizontal: 20 }}
@@ -114,11 +122,15 @@ export default function MovieDetail() {
           <View>
             <Image source={{ uri: coverUrl }} style={styles.image} resizeMode="contain" />
             <Text style={styles.title}>{movie.title}</Text>
-            <Text>⭐ {movie.tmdb_score}/10</Text>
+            <Text>⭐ {movie.tmdb_score}/10 (TMDb)</Text>
+            <Text style={styles.subtitle}>
+              ⭐ {userScoreAvg}/10 ({comments.length} comentarios)
+            </Text>
             <Text style={{ marginVertical: 10 }}>{movie.synopsis}</Text>
-            <Text>Fecha de salida: {new Date(movie.release_date).toISOString().slice(0, 10).replace(/-/g, '/')}</Text>
-            <Text>Actores: {movie.actors}</Text>
-            <Text>Score Usuarios: {movie.user_score}</Text>
+            <Text>
+              Fecha de salida:{' '}
+              {new Date(movie.release_date).toISOString().slice(0, 10).replace(/-/g, '/')}
+            </Text>
             <Text style={styles.sectionTitle}>Comentarios:</Text>
             {comments.length === 0 && <Text>No hay comentarios aún</Text>}
           </View>
@@ -126,28 +138,34 @@ export default function MovieDetail() {
         renderItem={({ item }) => (
           <View style={styles.commentBox}>
             <Text>
-              <Text style={{ fontWeight: 'bold' }}>{item.username}</Text> ({item.role}): {item.score}/10
+              <Text style={{ fontWeight: 'bold' }}>{item.username}</Text> ({item.role}):{' '}
+              {item.score}/10
             </Text>
             <Text>{item.text}</Text>
           </View>
         )}
       />
 
-      {/* Footer fijo con formulario */}
       <View style={styles.footer}>
-        <Text style={styles.sectionTitle}>Agrega tu comentario:</Text>
+        <Text style={styles.sectionTitle}>Tu valoración:</Text>
+        <View style={styles.starsRow}>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <TouchableOpacity key={i} onPress={() => setMyScore(i + 1)}>
+              <Text style={[styles.star, i < myScore ? styles.starFilled : styles.starEmpty]}>
+                ★
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={styles.scoreHint}>
+          {myScore > 0 ? `${myScore} de 10 estrellas` : 'Toca una estrella para puntuar'}
+        </Text>
+
         <TextInput
           placeholder="Tu comentario"
           value={myText}
           onChangeText={setMyText}
           style={styles.input}
-        />
-        <TextInput
-          placeholder="Puntaje 1-10"
-          value={myScore}
-          onChangeText={setMyScore}
-          keyboardType="numeric"
-          style={[styles.input, { width: 80 }]}
         />
         {posting ? (
           <ActivityIndicator />
@@ -165,6 +183,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   image: { width: '100%', height: 300, marginVertical: 10 },
   title: { fontSize: 24, marginBottom: 5 },
+  subtitle: { fontSize: 16, marginBottom: 10, color: '#555' },
   sectionTitle: { fontSize: 18, marginVertical: 10 },
   commentBox: { borderBottomWidth: 1, borderColor: '#ccc', paddingVertical: 10 },
   footer: {
@@ -173,5 +192,10 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     backgroundColor: '#fafafa',
   },
+  starsRow: { flexDirection: 'row', marginVertical: 5 },
+  star: { fontSize: 28, marginHorizontal: 2 },
+  starFilled: { color: 'gold' },
+  starEmpty: { color: '#ccc' },
+  scoreHint: { marginBottom: 10, color: '#555' },
   input: { borderWidth: 1, padding: 8, marginBottom: 10 },
 });

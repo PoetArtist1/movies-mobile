@@ -2,13 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   TextInput,
-  Button,
   FlatList,
   Text,
   Image,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter, useNavigation } from 'expo-router';
 import api from '../api';
 
@@ -51,31 +52,35 @@ export default function MovieList() {
   }, [search, sortBy]);
 
   useEffect(() => {
+    fetchMovies();
+  }, [sortBy]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
-      if (search !== '') {
-        fetchMovies();
-      }
-    }, 500);
+      fetchMovies();
+    }, 400);
+
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, sortBy]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', fetchMovies);
     return unsubscribe;
-  }, []);
+  }, [fetchMovies]);
 
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Button
+        <Text
           onPress={() => {
             global.token = null;
             global.user = null;
             router.replace('/auth/login');
           }}
-          title="Cerrar sesión"
-          color="red"
-        />
+          style={{ color: 'red', marginRight: 10 }}
+        >
+          Cerrar sesión
+        </Text>
       ),
     });
   }, [navigation]);
@@ -118,11 +123,22 @@ export default function MovieList() {
         placeholder="Buscar título..."
         value={search}
         onChangeText={setSearch}
-        style={{ marginBottom: 10, padding: 8, borderWidth: 1 }}
+        style={{ marginBottom: 10, padding: 8, borderWidth: 1, borderRadius: 4 }}
       />
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-        <Button title="Por Puntuación" onPress={() => setSortBy('tmdb_score')} />
-        <Button title="Por Fecha" onPress={() => setSortBy('release_date')} />
+      <View style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 4, marginBottom: 10 }}>
+        <Picker
+          selectedValue={sortBy}
+          onValueChange={(value) => setSortBy(value)}
+          style={{
+            height: Platform.OS === 'ios' ? 180 : 55,
+            width: '100%',
+            justifyContent: 'center',
+          }}
+          itemStyle={{ fontSize: 16 }}
+        >
+          <Picker.Item label="Ordenar por Puntuación" value="tmdb_score" />
+          <Picker.Item label="Ordenar por Fecha" value="release_date" />
+        </Picker>
       </View>
 
       {renderHeader()}
