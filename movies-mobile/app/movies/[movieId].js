@@ -178,24 +178,93 @@ export default function MovieDetail() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  list: { flex: 1 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  image: { width: '100%', height: 300, marginVertical: 10 },
-  title: { fontSize: 24, marginBottom: 5 },
-  subtitle: { fontSize: 16, marginBottom: 10, color: '#555' },
-  sectionTitle: { fontSize: 18, marginVertical: 10 },
-  commentBox: { borderBottomWidth: 1, borderColor: '#ccc', paddingVertical: 10 },
-  footer: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fafafa',
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9fb',
   },
-  starsRow: { flexDirection: 'row', marginVertical: 5 },
-  star: { fontSize: 28, marginHorizontal: 2 },
-  starFilled: { color: 'gold' },
-  starEmpty: { color: '#ccc' },
-  scoreHint: { marginBottom: 10, color: '#555' },
-  input: { borderWidth: 1, padding: 8, marginBottom: 10 },
+  list: {
+    flex: 1,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    backgroundColor: '#f9f9fb',
+  },
+  image: {
+    width: '100%',
+    height: 320,
+    borderRadius: 12,
+    marginVertical: 15,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 8,
+    color: '#222',
+  },
+  subtitle: {
+    fontSize: 16,
+    marginBottom: 14,
+    color: '#777',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginVertical: 15,
+    color: '#333',
+  },
+  commentBox: {
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  footer: {
+    padding: 25,
+    borderTopWidth: 1,
+    borderColor: '#e2e2e2',
+    backgroundColor: '#fff',
+  },
+  starsRow: {
+    flexDirection: 'row',
+    marginVertical: 10,
+    justifyContent: 'center',
+  },
+  star: {
+    fontSize: 32,
+    marginHorizontal: 4,
+  },
+  starFilled: {
+    color: '#ffb400',
+  },
+  starEmpty: {
+    color: '#bbb',
+  },
+  scoreHint: {
+    marginBottom: 12,
+    color: '#555',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 15,
+    fontSize: 16,
+    backgroundColor: '#fafafa',
+    textAlignVertical: 'top',
+    minHeight: 80,
+  },
 });
+

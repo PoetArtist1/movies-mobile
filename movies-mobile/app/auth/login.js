@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Alert } from 'react-native';
+import { View, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import api from '../../api.js';
 
@@ -21,18 +21,46 @@ export default function Login() {
   };
 
   return (
-    <View style={{ padding: 20, flex: 1, justifyContent: 'center' }}>
-      <TextInput placeholder="Usuario" value={username} onChangeText={setUsername} style={{ marginBottom: 10 }} />
+    <View style={styles.container}>
+      <TextInput
+        placeholder="Usuario"
+        value={username}
+        onChangeText={setUsername}
+        style={styles.input}
+        autoCapitalize="none"
+      />
       <TextInput
         placeholder="Contraseña"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={{ marginBottom: 20 }}
+        style={styles.input}
       />
       <Button title="Iniciar sesión" onPress={handleLogin} />
-      <View style={{ height: 10 }} />
+      <View style={styles.spacer} />
       <Button title="Registrarse" onPress={() => router.push('/auth/register')} />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+    backgroundColor: '#f9f9fb',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+    fontSize: 16,
+  },
+  spacer: {
+    height: 10,
+  },
+});
